@@ -1,7 +1,4 @@
 /* eslint-disable max-len */
-// Write code here
-// Also, you can create additional files in the src folder
-// and import (require) them here
 const http = require('http');
 const { convertToCase } = require('./convertToCase');
 
@@ -13,6 +10,8 @@ const ERROR_MESSAGES = {
   INVALID_CASE:
     'This case is not supported. Available cases: SNAKE, KEBAB, CAMEL, PASCAL, UPPER.',
 };
+
+const VALID_CASES = ['SNAKE', 'KEBAB', 'CAMEL', 'PASCAL', 'UPPER'];
 
 function validateRequest(text, caseName) {
   const errors = [];
@@ -27,14 +26,10 @@ function validateRequest(text, caseName) {
     errors.push({
       message: ERROR_MESSAGES.NO_CASE,
     });
-  } else {
-    try {
-      transformCase(text, caseName);
-    } catch {
-      errors.push({
-        message: ERROR_MESSAGES.INVALID_CASE,
-      });
-    }
+  } else if (!VALID_CASES.includes(caseName.toUpperCase())) {
+    errors.push({
+      message: ERROR_MESSAGES.INVALID_CASE,
+    });
   }
 
   return errors;
@@ -65,10 +60,20 @@ function createServer() {
       return;
     }
 
-    const result = transformCase(text, caseName);
+    try {
+      const result = transformCase(text, caseName);
 
-    res.statusCode = 200;
-    res.end(JSON.stringify(result));
+      res.statusCode = 200;
+      res.end(JSON.stringify(result));
+    } catch (e) {
+      res.statusCode = 400;
+
+      res.end(
+        JSON.stringify({
+          errors: [{ message: ERROR_MESSAGES.INVALID_CASE }],
+        }),
+      );
+    }
   });
 
   return server;
